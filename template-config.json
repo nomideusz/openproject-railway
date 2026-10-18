@@ -1,0 +1,282 @@
+{
+ "services": {
+  "d130e605-68ee-465a-ae9d-9a0aad6afe10": {
+   "icon": "https://raw.githubusercontent.com/nomideusz/openproject-railway/main/icon.png",
+   "name": "OpenProject",
+   "build": {},
+   "deploy": {
+    "startCommand": "./docker/prod/web",
+    "preDeployCommand": [
+     "./docker/prod/seeder"
+    ],
+    "healthcheckPath": "/health_checks/default",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "source": {
+    "image": "openproject/openproject:17.9.2-slim"
+   },
+   "networking": {
+    "serviceDomains": {
+     "<hasDomain>": {}
+    }
+   },
+   "variables": {
+    "DATABASE_URL": {
+     "defaultValue": "postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.POSTGRES_DB}}?pool=20&encoding=unicode",
+     "description": "PostgreSQL connection (pool of 20 for web threads and background jobs)",
+     "isOptional": false
+    },
+    "SECRET_KEY_BASE": {
+     "defaultValue": "${{secret(64, \"0123456789abcdef\")}}",
+     "description": "Signs sessions and tokens. Never change it after the first deploy.",
+     "isOptional": false
+    },
+    "OPENPROJECT_HOST__NAME": {
+     "defaultValue": "${{RAILWAY_PUBLIC_DOMAIN}}",
+     "description": "Public host name used in links and emails. Change it to your custom domain after adding one.",
+     "isOptional": false
+    },
+    "OPENPROJECT_HTTPS": {
+     "defaultValue": "true",
+     "description": "Railway serves your domain over HTTPS",
+     "isOptional": false
+    },
+    "OPENPROJECT_DEFAULT__LANGUAGE": {
+     "defaultValue": "en",
+     "description": "Default language for new users and seeded data",
+     "isOptional": false
+    },
+    "OPENPROJECT_ATTACHMENTS__STORAGE": {
+     "defaultValue": "fog",
+     "description": "Store attachments in the Railway bucket, so the web and worker services both see them",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_DIRECTORY": {
+     "defaultValue": "${{Files.BUCKET}}",
+     "description": "Bucket name",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_PROVIDER": {
+     "defaultValue": "AWS",
+     "description": "S3-compatible storage",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_AWS__ACCESS__KEY__ID": {
+     "defaultValue": "${{Files.ACCESS_KEY_ID}}",
+     "description": "Bucket access key",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_AWS__SECRET__ACCESS__KEY": {
+     "defaultValue": "${{Files.SECRET_ACCESS_KEY}}",
+     "description": "Bucket secret key",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_REGION": {
+     "defaultValue": "${{Files.REGION}}",
+     "description": "Bucket region",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_ENDPOINT": {
+     "defaultValue": "${{Files.ENDPOINT}}",
+     "description": "Bucket endpoint",
+     "isOptional": false
+    },
+    "OPENPROJECT_DIRECT__UPLOADS": {
+     "defaultValue": "false",
+     "description": "Upload through OpenProject instead of straight from the browser to the bucket (which would need bucket CORS)",
+     "isOptional": false
+    },
+    "OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL": {
+     "defaultValue": "",
+     "description": "Real-time collaborative editing server - not included, so left empty",
+     "isOptional": true
+    },
+    "OPENPROJECT_SEED__ADMIN__USER__PASSWORD": {
+     "defaultValue": "${{secret(24, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+     "description": "Password of the 'admin' account created on first boot",
+     "isOptional": false
+    },
+    "OPENPROJECT_SEED__ADMIN__USER__PASSWORD__RESET": {
+     "defaultValue": "false",
+     "description": "Don't force a password change on first sign-in",
+     "isOptional": false
+    },
+    "OPENPROJECT_SEED__ADMIN__USER__MAIL": {
+     "defaultValue": "admin@example.com",
+     "description": "Email address of the admin account (change it later under My account)",
+     "isOptional": false
+    },
+    "OPENPROJECT_WEB_WORKERS": {
+     "defaultValue": "0",
+     "description": "Single puma process with threads - keeps memory low. Raise to 2+ on bigger plans.",
+     "isOptional": false
+    },
+    "RAILS_MAX_THREADS": {
+     "defaultValue": "8",
+     "description": "Puma threads",
+     "isOptional": false
+    },
+    "PORT": {
+     "defaultValue": "8080",
+     "description": "Port OpenProject listens on - leave as is",
+     "isOptional": false
+    }
+   }
+  },
+  "fcae3b48-cb79-4f8f-986f-9f5e77f085b5": {
+   "icon": "https://raw.githubusercontent.com/nomideusz/openproject-railway/main/icon.png",
+   "name": "Worker",
+   "build": {},
+   "deploy": {
+    "startCommand": "/bin/bash -c \"./docker/prod/wait-for-db && exec ./docker/prod/worker\"",
+    "healthcheckPath": null,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "source": {
+    "image": "openproject/openproject:17.9.2-slim"
+   },
+   "networking": {
+    "serviceDomains": {}
+   },
+   "variables": {
+    "DATABASE_URL": {
+     "defaultValue": "postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.POSTGRES_DB}}?pool=20&encoding=unicode",
+     "description": "PostgreSQL connection (pool of 20 for web threads and background jobs)",
+     "isOptional": false
+    },
+    "SECRET_KEY_BASE": {
+     "defaultValue": "${{OpenProject.SECRET_KEY_BASE}}",
+     "description": "Must match the OpenProject service",
+     "isOptional": false
+    },
+    "OPENPROJECT_HOST__NAME": {
+     "defaultValue": "${{OpenProject.RAILWAY_PUBLIC_DOMAIN}}",
+     "description": "Same host name as the OpenProject service",
+     "isOptional": false
+    },
+    "OPENPROJECT_HTTPS": {
+     "defaultValue": "true",
+     "description": "Railway serves your domain over HTTPS",
+     "isOptional": false
+    },
+    "OPENPROJECT_DEFAULT__LANGUAGE": {
+     "defaultValue": "en",
+     "description": "Default language for new users and seeded data",
+     "isOptional": false
+    },
+    "OPENPROJECT_ATTACHMENTS__STORAGE": {
+     "defaultValue": "fog",
+     "description": "Store attachments in the Railway bucket, so the web and worker services both see them",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_DIRECTORY": {
+     "defaultValue": "${{Files.BUCKET}}",
+     "description": "Bucket name",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_PROVIDER": {
+     "defaultValue": "AWS",
+     "description": "S3-compatible storage",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_AWS__ACCESS__KEY__ID": {
+     "defaultValue": "${{Files.ACCESS_KEY_ID}}",
+     "description": "Bucket access key",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_AWS__SECRET__ACCESS__KEY": {
+     "defaultValue": "${{Files.SECRET_ACCESS_KEY}}",
+     "description": "Bucket secret key",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_REGION": {
+     "defaultValue": "${{Files.REGION}}",
+     "description": "Bucket region",
+     "isOptional": false
+    },
+    "OPENPROJECT_FOG_CREDENTIALS_ENDPOINT": {
+     "defaultValue": "${{Files.ENDPOINT}}",
+     "description": "Bucket endpoint",
+     "isOptional": false
+    },
+    "OPENPROJECT_DIRECT__UPLOADS": {
+     "defaultValue": "false",
+     "description": "Upload through OpenProject instead of straight from the browser to the bucket (which would need bucket CORS)",
+     "isOptional": false
+    },
+    "OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL": {
+     "defaultValue": "",
+     "description": "Real-time collaborative editing server - not included, so left empty",
+     "isOptional": true
+    },
+    "OPENPROJECT_GOOD__JOB__MAX__THREADS": {
+     "defaultValue": "8",
+     "description": "Background job threads",
+     "isOptional": false
+    },
+    "WAIT_FOR_DB_TIMEOUT_SECONDS": {
+     "defaultValue": "900",
+     "description": "How long the worker waits for the database on first boot",
+     "isOptional": false
+    }
+   }
+  },
+  "b8ac055d-bd8b-4e52-a891-7974f8beb4d3": {
+   "icon": "https://devicons.railway.app/i/postgresql.svg",
+   "name": "Postgres",
+   "build": {},
+   "deploy": {
+    "startCommand": null,
+    "healthcheckPath": null,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "source": {
+    "image": "ghcr.io/railwayapp-templates/postgres-ssl:17"
+   },
+   "networking": {
+    "serviceDomains": {}
+   },
+   "volumeMounts": {
+    "38c052b0-a062-41b5-bf2c-ca417447e604": {
+     "mountPath": "/var/lib/postgresql/data"
+    }
+   },
+   "variables": {
+    "POSTGRES_DB": {
+     "defaultValue": "openproject",
+     "description": "Database name",
+     "isOptional": false
+    },
+    "POSTGRES_USER": {
+     "defaultValue": "openproject",
+     "description": "Database user",
+     "isOptional": false
+    },
+    "POSTGRES_PASSWORD": {
+     "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+     "description": "Auto-generated database password",
+     "isOptional": false
+    },
+    "PGDATA": {
+     "defaultValue": "/var/lib/postgresql/data/pgdata",
+     "description": "Data subdirectory - keeps Postgres happy on Railway volumes",
+     "isOptional": false
+    },
+    "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+     "defaultValue": "60",
+     "description": "Time for Postgres to shut down cleanly on redeploy",
+     "isOptional": false
+    }
+   }
+  }
+ },
+ "buckets": {
+  "2d782abb-55be-41d7-8091-ed70adfe7328": {
+   "name": "Files"
+  }
+ }
+}
