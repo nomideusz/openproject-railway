@@ -4,5 +4,6 @@
   "description": "Open-source project management: Gantt, boards, time tracking. Admin ready.",
   "category": "Other",
   "image": "https://raw.githubusercontent.com/nomideusz/openproject-railway/main/icon.png",
-  "id": "d2663650-d44d-4ffb-9f78-6483842bf5aa"
+  "id": "d2663650-d44d-4ffb-9f78-6483842bf5aa",
+  "published": true
 }
