@@ -37,7 +37,7 @@ What's set up for you:
 
 - [OpenProject documentation](https://www.openproject.org/docs/)
 - [OpenProject on GitHub](https://github.com/opf/openproject)
-- [Template source on GitHub](https://github.com/nomideusz/openproject-railway)
+- [Template source on GitHub](https://github.com/two-workspaces/openproject)
 
 ### Implementation Details
 

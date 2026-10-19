@@ -1,7 +1,7 @@
 {
  "services": {
   "d130e605-68ee-465a-ae9d-9a0aad6afe10": {
-   "icon": "https://raw.githubusercontent.com/nomideusz/openproject-railway/main/icon.png",
+   "icon": "https://raw.githubusercontent.com/two-workspaces/openproject/main/icon.png",
    "name": "OpenProject",
    "build": {},
    "deploy": {
@@ -126,7 +126,7 @@
    }
   },
   "fcae3b48-cb79-4f8f-986f-9f5e77f085b5": {
-   "icon": "https://raw.githubusercontent.com/nomideusz/openproject-railway/main/icon.png",
+   "icon": "https://raw.githubusercontent.com/two-workspaces/openproject/main/icon.png",
    "name": "Worker",
    "build": {},
    "deploy": {
